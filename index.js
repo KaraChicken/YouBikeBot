@@ -1,6 +1,13 @@
 import 'dotenv/config'
 import linebot from 'linebot'
-import fe from './commands/fe.js'
+import { scheduleJob } from 'node-schedule'
+import * as usdtwd from './data/usdtwd.js'
+
+// https://crontab.guru/once-a-day
+scheduleJob('0 0 * * *', () => {
+  usdtwd.update()
+})
+usdtwd.update()
 
 const bot = linebot({
   channelId: process.env.CHANNEL_ID,
@@ -9,14 +16,17 @@ const bot = linebot({
 })
 
 bot.on('message', event => {
-  console.log(event)
+  if (process.env.DEBUG === 'true') {
+    console.log(event)
+  }
+
   if (event.message.type === 'text') {
-    if (event.message.text === '前端') {
-      fe(event)
+    if (event.message.text === '') {
+      event.reply(event)
     }
   }
 })
 
 bot.listen('/', process.env.PORT || 3000, () => {
-  console.log('機器人已啟動')
+  console.log('機器人啟動')
 })
